@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from dependencies.dependencies import get_db
 from models.pastry import Pastry
+from models.ingredient import Ingredient
 from schemas.pastry import Pastry as PastrySchema, PastryCreate
 
 router = APIRouter()
@@ -10,10 +11,12 @@ router = APIRouter()
 
 @router.post("/pastries/", response_model=PastrySchema)
 def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
+    ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all()
     db_pastry = Pastry(
         name=pastry.name,
         description=pastry.description,
-        image_url=pastry.image_url
+        image_url=pastry.image_url,
+        ingredients=ingredients
     )
     db.add(db_pastry)
     db.commit()
@@ -40,9 +43,14 @@ def update_pastry(pastry_id: int, pastry: PastryCreate, db: Session = Depends(ge
     db_pastry = db.query(Pastry).filter(Pastry.id == pastry_id).first()
     if db_pastry is None:
         raise HTTPException(status_code=404, detail="Pastry not found")
-    db_pastry.name = pastry.name
-    db_pastry.description = pastry.description
-    db_pastry.image_url = pastry.image_url
+    ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all()
+    if pastry.name:
+        db_pastry.name = pastry.name
+    if pastry.description:
+        db_pastry.description = pastry.description
+    if pastry.image_url:
+        db_pastry.image_url = pastry.image_url
+    db_pastry.ingredients = ingredients
     db.commit()
     db.refresh(db_pastry)
     return db_pastry
