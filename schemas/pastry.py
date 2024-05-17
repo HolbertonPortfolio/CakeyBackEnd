@@ -1,13 +1,16 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, HttpUrl, validator
+from typing import Optional
 
 
 class PastryBase(BaseModel):
     name: str
+    description: str
+    image_url: Optional[HttpUrl] = None
 
-    @validator('name')
+    @validator('name', 'description')
     def name_must_not_be_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError('Name must not be empty')
+            raise ValueError('Must not be empty')
         return v
 
 

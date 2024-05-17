@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from dependencies.dependencies import get_db  # Updated import
+from dependencies.dependencies import get_db
 from models.pastry import Pastry
 from schemas.pastry import Pastry as PastrySchema, PastryCreate
 
@@ -10,7 +10,11 @@ router = APIRouter()
 
 @router.post("/pastries/", response_model=PastrySchema)
 def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
-    db_pastry = Pastry(name=pastry.name)
+    db_pastry = Pastry(
+        name=pastry.name,
+        description=pastry.description,
+        image_url=pastry.image_url
+    )
     db.add(db_pastry)
     db.commit()
     db.refresh(db_pastry)
@@ -37,6 +41,8 @@ def update_pastry(pastry_id: int, pastry: PastryCreate, db: Session = Depends(ge
     if db_pastry is None:
         raise HTTPException(status_code=404, detail="Pastry not found")
     db_pastry.name = pastry.name
+    db_pastry.description = pastry.description
+    db_pastry.image_url = pastry.image_url
     db.commit()
     db.refresh(db_pastry)
     return db_pastry
