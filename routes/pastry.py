@@ -43,14 +43,16 @@ def update_pastry(pastry_id: int, pastry: PastryCreate, db: Session = Depends(ge
     db_pastry = db.query(Pastry).filter(Pastry.id == pastry_id).first()
     if db_pastry is None:
         raise HTTPException(status_code=404, detail="Pastry not found")
-    ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all()
-    if pastry.name:
+    if pastry.name is not None:
         db_pastry.name = pastry.name
-    if pastry.description:
+    if pastry.description is not None:
         db_pastry.description = pastry.description
-    if pastry.image_url:
+    if pastry.image_url is not None:
         db_pastry.image_url = pastry.image_url
-    db_pastry.ingredients = ingredients
+    if pastry.ingredients or pastry.ingredients == []:
+        ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all()
+        db_pastry.ingredients = ingredients
+
     db.commit()
     db.refresh(db_pastry)
     return db_pastry
