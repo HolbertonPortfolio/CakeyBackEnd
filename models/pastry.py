@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Table, ForeignKey
+from sqlalchemy import Column, Integer, String, Table, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from config.db import Base
 
@@ -18,5 +18,6 @@ class Pastry(Base):
     name = Column(String(255), nullable=False)
     description = Column(String(255), nullable=False)
     image_url = Column(String(255))
+    recipe = Column(JSON, nullable=True)
 
     ingredients = relationship('Ingredient', secondary=pastry_ingredient_association, back_populates="pastries")

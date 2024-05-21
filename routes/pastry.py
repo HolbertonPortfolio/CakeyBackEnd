@@ -16,7 +16,8 @@ def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
         name=pastry.name,
         description=pastry.description,
         image_url=pastry.image_url,
-        ingredients=ingredients
+        ingredients=ingredients,
+        recipe=pastry.recipe.dict() if pastry.recipe else None
     )
     db.add(db_pastry)
     db.commit()
