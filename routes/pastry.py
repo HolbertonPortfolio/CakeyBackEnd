@@ -93,3 +93,20 @@ def get_pastries_by_ingredients(ingredient_list: IngredientList, db: Session = D
             result.append(pastry)
 
     return result
+
+
+@router.get("/pastries/search/")
+def search_pastries(query: str, db: Session = Depends(get_db)):
+    pastries = db.query(Pastry).join(Pastry.ingredients).filter(
+        or_(
+            Pastry.name.ilike(f"%{query}%"),
+            Pastry.description.ilike(f"%{query}%"),
+            Ingredient.name.ilike(f"%{query}%")
+        )
+    ).all()
+    results = []
+    for pastry in pastries:
+        result = {'id': pastry.id, 'name': pastry.name, 'description': pastry.description,
+                  'image_url': pastry.image_url}
+        results.append(result)
+    return results
