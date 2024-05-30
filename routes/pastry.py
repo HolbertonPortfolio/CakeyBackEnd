@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy import or_
 from dependencies.dependencies import get_db
 from models.pastry import Pastry
 from models.ingredient import Ingredient
@@ -12,6 +13,8 @@ router = APIRouter()
 @router.post("/pastries/", response_model=PastrySchema)
 def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
     ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all()
+    if len(ingredients) != len(pastry.ingredients):
+        raise HTTPException(status_code=400, detail="One or more ingredients not found")
     db_pastry = Pastry(
         name=pastry.name,
         description=pastry.description,
