@@ -43,3 +43,10 @@ class Pastry(PastryBase):
 
     class Config:
         orm_mode = True
+
+
+class IngredientList(BaseModel):
+    ingredients: List[int]
+
+    class Config:
+        orm_mode = True

@@ -4,7 +4,7 @@ from typing import List
 from dependencies.dependencies import get_db
 from models.pastry import Pastry
 from models.ingredient import Ingredient
-from schemas.pastry import Pastry as PastrySchema, PastryCreate
+from schemas.pastry import Pastry as PastrySchema, PastryCreate, IngredientList
 
 router = APIRouter()
 
@@ -72,3 +72,21 @@ def delete_pastry(pastry_id: int, db: Session = Depends(get_db)):
     db.delete(db_pastry)
     db.commit()
     return {"detail": "Pastry deleted"}
+
+
+@router.post("/pastries/by-ingredients", response_model=List[PastrySchema])
+def get_pastries_by_ingredients(ingredient_list: IngredientList, db: Session = Depends(get_db)):
+    # Get the list of ingredient IDs
+    ingredient_ids = ingredient_list.ingredients
+
+    # Get pastries that contain any of the specified ingredients
+    pastries = db.query(Pastry).join(Pastry.ingredients).filter(Ingredient.id.in_(ingredient_ids)).all()
+
+    # Filter pastries to only include those that contain all the specified ingredients
+    result = []
+    for pastry in pastries:
+        pastry_ingredient_ids = {ingredient.id for ingredient in pastry.ingredients}
+        if all(ingredient_id in pastry_ingredient_ids for ingredient_id in ingredient_ids):
+            result.append(pastry)
+
+    return result
