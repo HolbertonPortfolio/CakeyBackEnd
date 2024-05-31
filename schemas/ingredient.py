@@ -1,9 +1,11 @@
+from typing import Optional, List
+
 from pydantic import BaseModel
 
 
 class IngredientBase(BaseModel):
     name: str
-    description: str = None
+    description: Optional[str] = None
 
 
 class IngredientCreate(IngredientBase):
@@ -15,3 +17,7 @@ class Ingredient(IngredientBase):
 
     class Config:
         orm_mode = True
+
+
+class IngredientList(BaseModel):
+    ingredients: List[int]

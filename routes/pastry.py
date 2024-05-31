@@ -1,26 +1,43 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from sqlalchemy import or_
 from dependencies.dependencies import get_db
 from models.pastry import Pastry
 from models.ingredient import Ingredient
-from schemas.pastry import Pastry as PastrySchema, PastryCreate, IngredientList
+from models.recipe import Recipe
+from models.step import Step
+from schemas.ingredient import IngredientList
+from schemas.pastry import Pastry as PastrySchema, PastryCreate
+from schemas.recipe import RecipeCreate
+from sqlalchemy import or_
+
 
 router = APIRouter()
 
 
 @router.post("/pastries/", response_model=PastrySchema)
 def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
-    ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all()
-    if len(ingredients) != len(pastry.ingredients):
-        raise HTTPException(status_code=400, detail="One or more ingredients not found")
+    # Create the recipe
+    recipe_data = RecipeCreate(**pastry.recipe.dict())
+    db_recipe = Recipe(name=recipe_data.name)
+    db.add(db_recipe)
+    db.commit()
+    db.refresh(db_recipe)
+
+    # Add steps to the recipe
+    for step in recipe_data.steps:
+        db_step = Step(description=step.description, timer=step.timer, recipe_id=db_recipe.id)
+        db.add(db_step)
+    db.commit()
+
+    # Create the pastry
+    ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all() if pastry.ingredients else []
     db_pastry = Pastry(
         name=pastry.name,
         description=pastry.description,
         image_url=pastry.image_url,
-        ingredients=ingredients,
-        recipe=pastry.recipe.dict() if pastry.recipe else None
+        recipe_id=db_recipe.id,
+        ingredients=ingredients
     )
     db.add(db_pastry)
     db.commit()
