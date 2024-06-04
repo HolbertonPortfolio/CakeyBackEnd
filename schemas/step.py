@@ -4,6 +4,7 @@ from pydantic import BaseModel, validator
 class StepBase(BaseModel):
     description: str
     timer: int
+    step_number: int
 
     @validator('description')
     def description_must_not_be_empty(cls, v):

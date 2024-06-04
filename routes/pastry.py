@@ -26,7 +26,10 @@ def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
 
     # Add steps to the recipe
     for step in recipe_data.steps:
-        db_step = Step(description=step.description, timer=step.timer, recipe_id=db_recipe.id)
+        db_step = Step(description=step.description,
+                       timer=step.timer,
+                       recipe_id=db_recipe.id,
+                       step_number=step.step_number)
         db.add(db_step)
     db.commit()
 
