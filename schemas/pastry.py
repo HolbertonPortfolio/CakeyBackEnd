@@ -28,3 +28,10 @@ class Pastry(PastryBase):
 
     class Config:
         orm_mode = True
+
+
+class PastryList(BaseModel):
+    id: int
+    name: str
+    description: str
+    image_url: Optional[HttpUrl]
