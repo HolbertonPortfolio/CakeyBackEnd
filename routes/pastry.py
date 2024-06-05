@@ -7,7 +7,7 @@ from models.ingredient import Ingredient
 from models.recipe import Recipe
 from models.step import Step
 from schemas.ingredient import IngredientList
-from schemas.pastry import Pastry as PastrySchema, PastryCreate
+from schemas.pastry import Pastry as PastrySchema, PastryCreate, PastryList
 from schemas.recipe import RecipeCreate
 from sqlalchemy import or_
 
@@ -48,7 +48,7 @@ def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
     return db_pastry
 
 
-@router.get("/pastries/")
+@router.get("/pastries/", response_model=PastryList)
 def read_pastries(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     pastries = db.query(Pastry).offset(skip).limit(limit).all()
     results = []
@@ -115,7 +115,7 @@ def get_pastries_by_ingredients(ingredient_list: IngredientList, db: Session = D
     return result
 
 
-@router.get("/pastries/search/")
+@router.get("/pastries/search/", response_model=PastryList)
 def search_pastries(query: str, db: Session = Depends(get_db)):
     pastries = db.query(Pastry).join(Pastry.ingredients).filter(
         or_(
