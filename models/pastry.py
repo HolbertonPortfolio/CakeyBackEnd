@@ -18,7 +18,7 @@ class Pastry(Base):
     name = Column(String(255), nullable=False)
     description = Column(String(255), nullable=False)
     image_url = Column(String(255))
-    recipe_id = Column(Integer, ForeignKey('recipes.id'))
+    #recipe_id = Column(Integer, ForeignKey('recipes.id'))
 
-    recipe = relationship("Recipe", back_populates="pastry")
+    recipes = relationship("Recipe", back_populates="pastry")
     ingredients = relationship('Ingredient', secondary='pastry_ingredient', back_populates="pastries")

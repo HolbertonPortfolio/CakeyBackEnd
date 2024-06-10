@@ -8,5 +8,7 @@ class Recipe(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
+    pastry_id = Column(String(256), nullable=False)
+
     steps = relationship("Step", back_populates="recipe", cascade="all, delete-orphan")
-    pastry = relationship("Pastry", uselist=False, back_populates="recipe")
+    pastry = relationship("Pastry", back_populates="recipes")
