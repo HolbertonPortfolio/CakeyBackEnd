@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Union
 from dependencies.dependencies import get_db
 from models.pastry import Pastry
 from models.ingredient import Ingredient
@@ -46,37 +46,13 @@ def create_single_pastry(pastry: PastryCreate, db: Session):
     db.refresh(db_pastry)
     return db_pastry
 
-@router.post("/pastries/", response_model=PastrySchema)
-def create_pastry(pastry: PastryCreate, db: Session = Depends(get_db)):
-    # Create the recipe
-    recipe_data = RecipeCreate(**pastry.recipe.dict())
-    db_recipe = Recipe(name=recipe_data.name)
-    db.add(db_recipe)
-    db.commit()
-    db.refresh(db_recipe)
-
-    # Add steps to the recipe
-    for step in recipe_data.steps:
-        db_step = Step(description=step.description,
-                       timer=step.timer,
-                       recipe_id=db_recipe.id,
-                       step_number=step.step_number)
-        db.add(db_step)
-    db.commit()
-
-    # Create the pastry
-    ingredients = db.query(Ingredient).filter(Ingredient.id.in_(pastry.ingredients)).all() if pastry.ingredients else []
-    db_pastry = Pastry(
-        name=pastry.name,
-        description=pastry.description,
-        image_url=pastry.image_url,
-        recipe_id=db_recipe.id,
-        ingredients=ingredients
-    )
-    db.add(db_pastry)
-    db.commit()
-    db.refresh(db_pastry)
-    return db_pastry
+@router.post("/pastries/", response_model=Union[PastrySchema, List[PastrySchema]])
+def create_pastry(pastry: Union[PastryCreate, List[PastryCreate]], db: Session = Depends(get_db)):
+    if isinstance(pastry, list):
+        pastries = [create_single_pastry(p, db) for p in pastry]
+        return pastries
+    else:
+        return create_single_pastry(pastry, db)
 
 
 @router.get("/pastries/", response_model=PastryList)
